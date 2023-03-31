@@ -105,6 +105,74 @@
             [#t (existsAtPos (rest board) col row)]
         )
     ))
+    (define/private convertRowToFEN (lambda (rowOfPieces)
+        (let ((colValues (hash
+            "A" 0
+            "B" 1
+            "C" 2
+            "D" 3
+            "E" 4
+            "F" 5
+            "G" 6
+            "H" 7
+        ))
+        (toFEN (hash
+            "rook" "r"
+            "knight" "n"
+            "bishop" "b"
+            "queen" "q"
+            "king" "k"
+            "pawn" "p"
+        ))
+        (str ""))
+        (cond
+            [(empty? rowOfPieces) "8"]
+            [#t (for ([i (length rowOfPieces)])
+                (cond
+                    [(equal? (piecePos-column (list-ref rowOfPieces i)) "A") (set! str (string-append str (determineColor (piece-color (piecePos-piece (list-ref rowOfPieces i))) (hash-ref toFEN (piece-name (piecePos-piece (list-ref rowOfPieces i)))))))]
+                    [(and (not (equal? (piecePos-column (list-ref rowOfPieces i)) "A")) (equal? i 0)) (set! str (string-append str (determineDifference (hash-ref colValues "A") (hash-ref colValues (piecePos-column (list-ref rowOfPieces i))) #t) (determineColor (piece-color (piecePos-piece (list-ref rowOfPieces i))) (hash-ref toFEN (piece-name (piecePos-piece (list-ref rowOfPieces i)))))))]
+                    [#t (set! str (string-append str (determineDifference (hash-ref colValues (piecePos-column (list-ref rowOfPieces (- i 1)))) (hash-ref colValues (piecePos-column (list-ref rowOfPieces i))) #f) (determineColor (piece-color (piecePos-piece (list-ref rowOfPieces i))) (hash-ref toFEN (piece-name (piecePos-piece (list-ref rowOfPieces i)))))))]
+                )
+                #|
+                (cond
+                    [(equal? (last rowOfPieces) (list-ref rowOfPieces i)) (set! str (string-append str (determineColor (piece-color (piecePos-piece (list-ref rowOfPieces i))) (hash-ref toFEN (piece-name (piecePos-piece (list-ref rowOfPieces i)))))))]
+                    [(and (not (equal? (piecePos-column (list-ref rowOfPieces i)) "A")) (equal? i 0)) (set! str (string-append str (determineColor (piece-color (piecePos-piece (list-ref rowOfPieces i)))(determineDifference (hash-ref colValues "A") (hash-ref colValues (piecePos-column (list-ref rowOfPieces i)))))))]
+                    [#t (set! str (string-append str  (determineColor (piece-color (piecePos-piece (list-ref rowOfPieces i))) (hash-ref toFEN (piece-name (piecePos-piece (list-ref rowOfPieces i))))) (determineDifference (hash-ref colValues (piecePos-column (list-ref rowOfPieces i))) (hash-ref colValues (piecePos-column(list-ref rowOfPieces (+ 1 i)))) )))]
+                )|#
+            )str]
+        )
+            
+        )
+    ))
+
+    (define/private determineDifference (lambda (oPiece cPiece start)
+        (cond
+            [(equal? start #t) (number->string (abs (- oPiece cPiece)))]
+            [(equal? (- (abs (- oPiece cPiece)) 1) 0) ""]
+            [#t (number->string (- (abs (- oPiece cPiece))1))]
+        )
+    ))
+
+    (define/private determineColor (lambda (color pieceName)
+        (cond
+            [(equal? color "white") (string-upcase pieceName)]
+            [#t pieceName]
+        )
+    ))
+
+    (define/public createFEN (lambda ()
+        (let ((listRow (list "1" "2" "3" "4" "5" "6" "7" "8"))(finalString ""))
+            (for ([i (reverse listRow)])
+                (cond
+                    [(equal? i (first listRow)) (set! finalString (string-append finalString (convertRowToFEN(filter (lambda(x) (equal? (piecePos-row x) i)) boardState))))]
+                    [#t (set! finalString (string-append finalString (convertRowToFEN(filter (lambda(x) (equal? (piecePos-row x) i)) boardState)) "/"))]
+                )
+            )
+            (println finalString)
+            finalString
+        )
+        
+    ))
     ;converts the column and row information of a piece into the appropriate pixel coordinates
     (define/public translatePiecePosToBoardPos (lambda (cPiece)
         (list (hash-ref cells (piecePos-column cPiece)) (hash-ref cells (piecePos-row cPiece)))

@@ -6,12 +6,12 @@
 #lang racket/gui
 ;import the necessary packages
 (require 2htdp/image (only-in pict pict->bitmap))
-(require "chessstate.rkt")
+(require "chessstate2.rkt")
 
 ;define a path to the image folder in which sprites are contained for easy use later
-(define imgFolder (path->string (build-path (current-directory) "racket-chess\\sprites")))
+(define imgFolder (path->string (build-path (current-directory) "sprites")))
 ;we create a frame
-(define root (new frame% [label "Chess"][width 194][height 218]))
+(define root (new frame% [label "Chess"][width 194][height 268]))
 
 ;converts an image object from 2htdp/image to a bitmap
 (define img->bmap (lambda (image)
@@ -32,6 +32,7 @@
         [#t (drawBoard (rest boardState) (placePiece iBoardState (getBitmap (piece-sprite (piecePos-piece (first boardState)))) (send board translatePiecePosToBoardPos (first boardState))))]
     )
 ))
+
 ;an extension of the canvas class. Additional functions are added and some overriden
 (define ccanvas% (class canvas%
     (super-new)
@@ -108,5 +109,7 @@
         (send dc draw-bitmap (drawBoard (send board getBoard) (getBitmap "board.png")) 0 0)
     )]
 )
+(define FEN (new button%[parent root][label "CREATE FEN"][callback (lambda (o e)(send fenOutput set-label (send board createFEN)))]))
+(define fenOutput (new message% [parent root][label ""][auto-resize #t]))
 
 (send root show #t)
